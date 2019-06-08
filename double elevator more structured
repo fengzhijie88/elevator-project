@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May  8 20:06:48 2019
+
+@author: Zhijie
+"""
+
+#The first program to simulate the waiting time distribution of elevator model
+
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+#initialize fixed model parameters
+tauv=1
+taus=5
+N_zero=758#758 for 0.19, 7933 for 0.199 ,119for 0.15,
+F=100
+
+Total=10000 #number of iteration
+rate=0.5
+#initialize model variables
+#list of collected data
+
+waitingT_=[]
+waitingN_=[N_zero]
+fmax_=[]
+N=N_zero
+
+meanT=[]
+meanN=[]
+meanfmax_=[]
+result=[]
+def waitmorestep():
+    global time1, time2, N
+    if time1!=0:time1-=1
+    if time2!=0:time2-=1
+    waitingT_.append(0)
+    waitingN_.append(0)
+    N=np.random.poisson(rate)
+    return
+
+def updatetime(time1,time2): #time1 is always lower than time2
+    global N
+    time=time1 #next time have event
+    N=np.random.poisson(rate*time)
+    
+    if N==0:
+        waitmorestep()
+        return time1,time2
+    
+    pos=np.max(np.random.random_integers(1,F,size=N))
+    
+    time1=2*tauv*pos+N*taus
+    time2-=time
+    return time1, time2
+
+
+
+for rate in np.linspace(0.15,0.399, num=60):
+ #   for taus in np.linspace(10,100, num=40):
+#for N_zero in np.linspace(1,2000, num=40):
+#    for Total in np.linspace(2,200, num=50):
+    waitingT_=[]
+    timearrival=[]
+    waitingN_=[int(N_zero)]
+    fmax_=[]
+    N=N_zero
+    time=0
+    
+    #pos1,pos2=0,0
+    #initialize the time1 time2
+    N1=int(N/2)
+    N2=N1+N%2
+    pos1=np.max(np.random.random_integers(1,F,size=N1)) #pos is the max floor need to be reached
+    pos2=np.max(np.random.random_integers(1,F,size=N2))
+    
+    time1=2*tauv*pos1+N1*taus
+    time2=2*tauv*pos2+N2*taus
+    # 1. check time until arrival
+    # 2. update another lift's time until arrival
+    
+
+
+    for i in range(int(Total)):
+       
+        if time1==time2:  #if there are two lifts, people split in half
+            time=time1
+            N=np.random.poisson(rate*time)
+            
+            if N==0:
+                waitmorestep()
+                continue
+            
+            if N==1:#take lift 1 by default
+                pos=np.max(np.random.random_integers(1,F,size=N))
+                time1=2*tauv*pos+N*taus
+                time2-=time
+                N=np.random.poisson(rate*time)
+                
+            N1=int(N/2)
+            N2=N1+N%2
+            pos1=np.max(np.random.random_integers(1,F,size=N1)) #pos is the max floor need to be reached
+            pos2=np.max(np.random.random_integers(1,F,size=N2))
+            
+            time1=2*tauv*pos1+N1*taus
+            time2=2*tauv*pos2+N2*taus
+            
+        elif time1<time2:
+            time1,time2=updatetime(time1,time2)
+            
+        
+        elif time1>time2:
+            time1,time2=updatetime(time2,time1)
+            
+            #fmax_.append(fmax)
+        waitingN_.append(N)
+        waitingT_.append(time)
+        #timearrival.append(time1-time2)
+        
+    result.append([rate,taus,np.mean(waitingT_),np.mean(waitingN_),np.mean(timearrival),np.std(timearrival),N_zero,Total])
+    #meanT.append(np.mean(waitingT_))
+   # meanN.append(np.mean(waitingN_))
+   # meanTv=meanT[0]
+    #meanNv=meanN[0]
+x2=[]
+y2=[]
+
+for i in range(len(result)):
+    x2.append(1-result[i][0]*2.5)
+    y2.append(result[i][3]+1)
+    
+plt.scatter(x2,y2)
+plt.yscale('log')
+plt.xscale('log')
+'''
+x=[]
+y=[]
+z=[]
+for i in range(len(result)):
+    x.append(result[i][0])
+    y.append(result[i][1])
+    z.append(result[i][3])
+normalize = colors.Normalize(vmin=min(z), vmax=max(z))
+im=plt.scatter(x, y, c=z,cmap=plt.cm.bwr,norm=normalize)   
+plt.colorbar(im)
+plt.title("tauv=1 taus=1 N_zero=1 F=100 rate=0.1")
+
+corlist1=[]
+autocorrelation1=0
+for j in range(1000):
+    for i in range(90000):
+        autocorrelation1+=(waitingT_[i]-meanTv)*(waitingT_[i+j]-meanTv)
+    autocorrelation1=autocorrelation1/90000/np.var(waitingT_)
+    corlist1.append(autocorrelation1)
+
+corlist2=[]
+autocorrelation2=0
+for j in range(1000):
+    for i in range(90000):
+        autocorrelation2+=(waitingN_[i]-meanNv)*(waitingN_[i+j]-meanNv)
+    autocorrelation2=autocorrelation2/90000/np.var(waitingN_)
+    corlist2.append(autocorrelation2)
+
+corlist3=[]
+autocorrelation3=0
+for j in range(300):
+    for i in range(90000):
+        autocorrelation3+=(waitingN_[i]-meanNv)*(waitingT_[i+j]-meanTv)
+    autocorrelation3=autocorrelation3/90000/np.std(waitingN_)/np.std(waitingT_)
+    corlist3.append(autocorrelation3)
+'''
