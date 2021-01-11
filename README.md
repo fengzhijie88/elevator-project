@@ -4,8 +4,8 @@ This repository gives the simulations used in the paper "When Will an Elevator A
 ## Preparation
 ### Cython
 To use Cython optimization, install Cython through https://cython.readthedocs.io/en/latest/src/quickstart/install.html.
-Before running any of the programs, type in the commend `python transport_setup.py build_ext --inplace` (once) in terminal under the same repository of the code. 
-The files "transport.pyx" and "transport_setup.py" are part of the Cython implementation. To use python without Cython, simply delete the lines "from mytransport import transport"
+Before running any of the programs, run the commend `python transport_setup.py build_ext --inplace` (once) in terminal under the same repository of the code. 
+The files "transport.pyx" and "transport_setup.py" are part of the Cython implementation. To use native Python without Cython, simply delete the lines "from mytransport import transport"
 And uncomment function definition of "transport".
 
 ### fast-histogram
@@ -19,9 +19,10 @@ The file "elevator simulation finite capacity" contains both the iterative solut
 The file "elevator simulation inite capacity" contains the simulation and outputs a key figure to show synchronization. All relevent data are stored in lists or numpy array for plotting and further analysis. The file "clearing probability" is a simplified version of the same simulation that only record the clearing probaility.
 
 ## Citation
-@article{ elevator2020,
+
+`@article{ elevator2020,
   title={When Will an Elevator Arrive?},
   author={Zhijie Feng, Sidney Redner},
   journal={arXiv preprint},
-  year={2020}
+  year={2020}`
 }
