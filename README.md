@@ -16,5 +16,5 @@ The code imcludes all simulation used in the paper. The implementation of theret
 ### Infinite capacity
 The file "elevator simulation finite capacity" contains both the iterative solution and the simulation result of interested distributions. 
 ### Finite capacity
-The file "elevator simulation inite capacity" contains the simulation and outputs a key figure to show synchronization. All relevent data are stored in lists or numpy array for plotting and further analysis. 
+The file "elevator simulation inite capacity" contains the simulation and outputs a key figure to show synchronization. All relevent data are stored in lists or numpy array for plotting and further analysis. The file "clearing probability" is a simplified version of the simulation that only record the clearing probaility.
 
