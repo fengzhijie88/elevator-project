@@ -18,3 +18,10 @@ The file "elevator simulation finite capacity" contains both the iterative solut
 ### Finite capacity
 The file "elevator simulation inite capacity" contains the simulation and outputs a key figure to show synchronization. All relevent data are stored in lists or numpy array for plotting and further analysis. The file "clearing probability" is a simplified version of the same simulation that only record the clearing probaility.
 
+## Citation
+@article{ elevator2020,
+  title={When Will an Elevator Arrive?},
+  author={Zhijie Feng, Sidney Redner},
+  journal={arXiv preprint},
+  year={2020}
+}
