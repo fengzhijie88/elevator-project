@@ -14,5 +14,7 @@ For plotting histograms, we used fast-histogram package that can be installed fr
 ## Simulation
 The code imcludes all simulation used in the paper. The implementation of theretical calculation is not necessarily included. The model parameters are set as used in the paper, and can be modified by changing the values. 
 ### Infinite capacity
-The ""
+The file "elevator simulation finite capacity" contains both the iterative solution and the simulation result of interested distributions. 
 ### Finite capacity
+The file "elevator simulation inite capacity" contains the simulation and outputs a key figure to show synchronization. All relevent data are stored in lists or numpy array for plotting and further analysis. 
+
