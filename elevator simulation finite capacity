@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Sep  7 16:26:33 2019
+
+@author: Zhijie
+
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as colors
+from collections import Counter
+from mytransport import transport 
+#python transport_setup.py build_ext --inplace
+import random
+from scipy.fftpack import fft
+from fast_histogram import histogram1d
+import matplotlib.ticker as ticker
+
+'''
+#if not using cython speed up, uncomment this function and comment out "from mytransport import transport"
+
+def transport(waitingT_,waitingR_,population,popT_, number): #this update the queue after trasporting away "number" of people
+    R=len(population) #rounds of waiting
+    newpopT_=popT_
+    newpopu=population
+    waitingT_+=popT_[:number]
+    while number>0:
+        R-=1
+        ppl=newpopu[-1]
+        if ppl==0: newpopu=newpopu[:-1]
+        
+        else:
+            go=int(min(ppl,number))
+            #waitingR_=np.concatenate((waitingR_, R*np.ones(go)))
+            waitingR_[R]+=go
+            newpopT_=newpopT_[go:]
+            newpopu[-1]-=go
+            number-=go
+            if newpopu[-1]==0:newpopu=newpopu[:-1]
+       
+
+    return waitingT_,waitingR_,newpopu,newpopT_
+
+'''
+result=[]
+
+def histo(datalist): # all the histogram plot with same style
+    up=max(datalist)
+    histogram=histogram1d(np.float64(datalist),bins=int(up/2),range=[0,up])/len(datalist)
+    plt.plot(np.linspace(0,up,num=int(up/2)),histogram)
+    plt.yscale("log")
+    plt.yticks([0.01,0.0001])
+
+
+def fmax(f,capacity): #the exact formula to determine the expected F_max
+    summation=0
+    down=f**capacity
+    for i in range(f):
+        summation+=i**capacity/down
+    return (f-summation)
+
+
+fmaxlist=[]
+for capacity in range(500):
+    fmaxlist.append(fmax(f,capacity))
+    
+def waitmorestep(waitingT_,Time,liftcor):
+    global N,time,newcome
+    global globaltime
+    extratime=np.random.exponential(1/rate)
+    for i in range(n):
+        Time[i]=max(Time[i]-extratime,0)
+    time+=extratime#??
+    liftcor.append([globaltime,0])
+    globaltime+=extratime
+    liftcor.append([globaltime,0])
+    newcome=1
+    waitingT_=waitingT_+[0]
+    N=1
+    return waitingT_,Time,liftcor
+
+
+def updatetime(Time,waitingT_,population,waitingR_,popT_):
+    # update all elevator's time until arrival
+    global N,time,Naway
+    global globaltime
+    global taus
+    liftcor=[]
+    time=np.min(Time)
+    globaltime+=time
+    liftcor.append([globaltime,0])
+    
+    newcome=np.random.poisson(rate*time)
+    N+=newcome
+    if len(popT_):popT_=list(np.array(popT_)+time)
+    popT_+=list(np.random.uniform(0,time,size=newcome))
+    if N==0:
+            waitingT_,Time_,liftcor=waitmorestep(waitingT_,Time,liftcor)
+            population=[1]
+            
+     
+    else:population=[newcome]+population
+    Naway=min(N,capacity)
+    N-=Naway
+    floorlist=Counter(np.random.random_integers(1,f,size=Naway))#this function does not include highest
+    floorlist=sorted(floorlist.items())
+    pos=max(floorlist)[0]
+    taus=np.mean(np.random.uniform(2,3,size=Naway))
+    waitingT_,waitingR_,population,popT_=transport(waitingT_,waitingR_,population,popT_,Naway)
+    
+    choice=[]
+    for i in range(n):
+        Time[i]=max(Time[i]-time,0)
+        if Time[i]==0:choice.append(i)
+    
+    elevator=random.choice(choice)
+    Time[elevator]=2*tauv*pos+2*Naway*taus 
+            
+
+    
+    liftcor+=stopfloor(floorlist,globaltime)
+    liftcor.append([globaltime+2*tauv*pos+2*Naway*taus,0])
+    return Time, waitingT_,population,waitingR_,popT_,elevator,floorlist,liftcor
+
+def stopfloor(floorlist,globaltime):
+    time=globaltime
+    pref=0
+    liftcor=[]
+    time+=Naway*taus#####waiting till people get on elevator
+    liftcor.append([time,0])
+    for floorc in floorlist:
+        floor=floorc[0]
+        people=floorc[1]
+        liftcor.append([time+tauv*(floor-pref),floor])
+        liftcor.append([time+tauv*(floor-pref)+taus*people,floor])
+        time=time+tauv*(floor-pref)+taus*people
+        pref=floor
+    return liftcor
+
+############################# All input variables here###################################################################
+tauv=1
+taus=2.5
+Total=30000 #number of iteration
+f=100 #highest floor of the building
+n=6 #number of elevators
+capacity=50
+fmax=fmaxlist[capacity]
+ratelimit=n/(2*taus+2*fmax*tauv/(capacity))
+ratelist=[ratelimit*0.5,ratelimit*0.8,ratelimit*0.98]
+########################################################################################################################
+plt.figure(figsize=(10,3*1.2))
+grid = plt.GridSpec(3, 5)
+figcount=0
+for rate in ratelist:
+    liftcor_=[]
+    for _ in range(n):
+        liftcor_.append([])
+
+    Time=np.zeros(n)
+    ###
+    fmax=fmaxlist[capacity]
+    ###
+    
+    #initialize data recorder
+    N=51
+    lift_=[]
+    travelT_=[]#cycle time of elevators
+    waitingN_=[N]#number of people waiting when elevator arrives
+    waitingT_=[] #time that each person wait until elevator arrives
+    waitingR_=np.zeros(10000) #numer of cycles that each person waits
+    extratime_=[]#time the elevator waited until a person arrive
+    fmax_=[]#highestfloor the elvator go in each cycle
+    transportN_=[]
+    fmax_=[]
+    time=0
+    globaltime=0
+    ##################################initialization#########################################################################
+    # initialized with the assumption that the initial number of people is within range of [capacity,2*capacity]
+    N1=capacity
+    N2=N-capacity
+    floorlist=Counter(np.random.random_integers(1,f,size=N1))
+    floorlist2=Counter(np.random.random_integers(1,f,size=N2))
+    floorlist=sorted(floorlist.items())
+    floorlist2=sorted(floorlist2.items())
+    
+    pos1=max(floorlist)[0]
+    pos2=max(floorlist2)[0]
+    
+    Time[0]=2*tauv*pos1+2*N1*taus
+    Time[1]=2*tauv*pos2+2*N2*taus
+    liftcor_[0].append([0,0])
+    Naway=N1
+    liftcor_[0]+=stopfloor(floorlist,globaltime)
+    liftcor_[1].append([0,0])
+    Naway=N2
+    liftcor_[1]+=stopfloor(floorlist2,globaltime)
+    population=[N]
+    popT_=list(np.zeros(N))
+    ###########################################################################################################################
+
+    #start iterations of event-driven simulation
+    for i in range(int(Total)):
+        
+        Time, waitingT_,population,waitingR_,popT_,elevator,floorlist,liftcor=updatetime(Time,waitingT_,population,waitingR_,popT_)
+        liftcor_[elevator]+=liftcor
+        transportN_.append(Naway)
+        waitingN_.append(N)
+        travelT_.append(time)
+        lift_.append(elevator)
+    
+    for i in range(len(liftcor_)):
+        liftcor_[i]=np.array(liftcor_[i]).transpose()  
+    #Plot elevator interarrival time
+    plt.subplot(grid[figcount, 0:1])
+    histo(travelT_)
+    #Plot fast fourier transform of elevator interarrival time series
+    plt.subplot(grid[figcount, 1:2])
+    plt.plot(np.linspace(0,1,Total),1.0/Total * np.abs(fft(travelT_)),color='orange')
+    plt.yscale("log")
+    plt.yticks([100,0.01])
+    #Plot height of elevator versus (real) time
+    plt.subplot(grid[figcount, 2:])
+    figcount+=1
+    for j in range(n):
+        plt.plot(liftcor_[j][0],liftcor_[j][1])
+        
+    plt.xlim(5000,10000)
+    plt.tight_layout()
+    
+plt.tight_layout()
+
+plt.savefig('n'+str(n)+'_C'+str(capacity)+'synchronization'+'.pdf',bbox_inches='tight')
