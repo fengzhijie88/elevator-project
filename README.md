@@ -11,3 +11,8 @@ And uncomment function definition of "transport".
 ### fast-histogram
 For plotting histograms, we used fast-histogram package that can be installed from https://pypi.org/project/fast-histogram/. In the situation of plotting large amount of data, it significantly improves the efficiency compared to matplotlib.
 
+## Simulation
+The code imcludes all simulation used in the paper. The implementation of theretical calculation is not necessarily included. The model parameters are set as used in the paper, and can be modified by changing the values. 
+### Infinite capacity
+The ""
+### Finite capacity
